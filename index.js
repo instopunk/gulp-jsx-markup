@@ -26,16 +26,32 @@ const changeExtension = (filePath) => {
 module.exports = ( config ) => {
   const parameters = {
     ...{
-      doctype: '<!doctype html>\n'
+      doctype: '<!doctype html>\n',
+      linting: false
     },
     ...config
+  }
+
+  webpackConfig = {
+    ...webpackConfig,
+    mode: 'development'
+  }
+
+  if(parameters.linting){
+    let
+      rules = webpackConfig.module.rules,
+      jsxRule = rules.filter(item => item.test.toString() === '/\\.(j|t)sx?$/')
+
+    if(jsxRule.length){
+      jsxRule = jsxRule[0]
+      jsxRule.use = [...jsxRule.use, 'eslint-loader']
+    }
   }
 
   return through.obj(function(file, encoding, callback) {
     webpackConfig = {
       ...webpackConfig,
-      entry: file.path,
-      mode: 'development'
+      entry: file.path
     }
 
     const compiler = webpack(webpackConfig)
@@ -70,11 +86,12 @@ module.exports = ( config ) => {
         file.contents = new Buffer.from(result)
         file.path = changeExtension(file.path)
         this.push(file)
+        callback()
       }
       catch ( e ) {
         gutil.log('[webpack]', e)
+        callback()
       }
-      callback()
     }
 
     compiler.outputFileSystem = new MemoryFs()
