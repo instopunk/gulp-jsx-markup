@@ -8,7 +8,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.jsx', '.tsx']
+    extensions: ['.jsx', '.tsx', '.js']
   },
 
   module: {
