@@ -51,6 +51,23 @@ module.exports = {
             }
           }
         ]
+      },
+      {
+        test: /\.icon\.svg$/,
+        use: [
+          {
+            loader: "react-svg-loader",
+            options: {
+              jsx: false, // true outputs JSX tags
+              svgo: {
+                plugins: [
+                  { removeTitle: true },
+                  { uniqueID: require('svgo-unique-id') }
+                ]
+              }
+            }
+          }
+        ]
       }
     ]
 

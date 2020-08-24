@@ -29,7 +29,9 @@
     "path": "^0.12.7",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-svg-loader": "^3.0.3",
     "replace-ext": "^2.0.0",
+    "svgo-unique-id": "^1.0.0",
     "through2": "^4.0.2",
     "webpack": "^4.44.1"
   }
