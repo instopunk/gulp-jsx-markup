@@ -62,6 +62,7 @@ module.exports = {
               svgo: {
                 plugins: [
                   { removeTitle: true },
+                  { removeViewBox: false },
                   { uniqueID: require('svgo-unique-id') }
                 ]
               }
