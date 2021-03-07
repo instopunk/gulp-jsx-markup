@@ -1,6 +1,6 @@
 {
   "name": "gulp-jsx-markup",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Gulp plugin for translate JSX to HTML",
   "main": "index.js",
   "keywords": [

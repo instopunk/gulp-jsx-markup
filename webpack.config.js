@@ -16,10 +16,13 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?$/,
+        exclude: /node_modules/,
         use: [
           {
             loader: 'babel-loader',
             options: {
+              cacheDirectory: true,
+              cacheCompression: false,
               presets: [
                 '@babel/preset-env',
                 '@babel/preset-react'
@@ -34,10 +37,13 @@ module.exports = {
       },
       {
         test: /\.tsx?$/,
+        exclude: /node_modules/,
         use: [
           {
             loader: 'babel-loader',
             options: {
+              cacheDirectory: true,
+              cacheCompression: false,
               presets: [
                 '@babel/preset-env',
                 '@babel/preset-react',
