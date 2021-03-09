@@ -1,11 +1,18 @@
-module.exports = {
+const WebpackHtmlPlugin = require("./webpack-html-plugin")
+
+module.exports = ({ doctype }) => ({
+  //todo: what the context
   context: __dirname + '/src',
   entry: '',
   output: {
     path: __dirname + '/build',
     publicPath: '/',
-    filename: 'bundle.js'
+    filename: 'bundle.html'
   },
+
+  plugins: [new WebpackHtmlPlugin({
+    doctype: doctype
+  })],
 
   resolve: {
     extensions: ['.jsx', '.tsx', '.js']
@@ -21,8 +28,8 @@ module.exports = {
           {
             loader: 'babel-loader',
             options: {
-              cacheDirectory: true,
-              cacheCompression: false,
+              //cacheDirectory: true,
+              //cacheCompression: false,
               presets: [
                 '@babel/preset-env',
                 '@babel/preset-react'
@@ -79,4 +86,4 @@ module.exports = {
     ]
 
   }
-};
+})

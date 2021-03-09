@@ -1,100 +1,88 @@
 const
-  webpack = require('webpack'),
-  through = require('through2'),
-  ReactDOMServer = require('react-dom/server'),
-  replaceExt = require('replace-ext'),
+  fs = require('fs'),
   path = require('path'),
-  gutil = require('gulp-util'),
-  notifier = require('node-notifier'),
-  MemoryFs = require('memory-fs')
+  webpack = require('webpack')
 
 let
-  webpackConfig = require('./webpack.config.js'),
-  statsLog = {
-    colors: true,
-    reasons: true
-  }
+  webpackConfig = require('./webpack.config.js')
 
-const changeExtension = (filePath) => {
-  if ( path.extname(filePath) ) {
-    return replaceExt(filePath, '.html')
-  } else {
-    return filePath;
-  }
-}
-
-module.exports = ( config ) => {
-  const parameters = {
-    ...{
-      doctype: '<!doctype html>\n',
-      linting: false
+module.exports = (config) => {
+  const
+    options = {
+      ...{
+        doctype: '<!doctype html>',
+        linting: false,
+        watch: false
+      },
+      ...config
     },
-    ...config
+    rootDir = process.env.INIT_CWD,
+    contextPath = path.resolve(rootDir, config.context || 'src'),
+    srcPath = path.resolve(rootDir, config.srcPath),
+    buildPath = path.resolve(rootDir, config.buildPath)
+
+  webpackConfig = webpackConfig(options)
+
+  if ( options.linting ) {
+    enableLinting()
   }
 
-  webpackConfig = {
-    ...webpackConfig,
-    mode: 'development'
-  }
-
-  if(parameters.linting){
-    let
-      rules = webpackConfig.module.rules,
-      jsxRule = rules.filter(item => item.test.toString() === '/\\.(j|t)sx?$/')
-
-    if(jsxRule.length){
-      jsxRule = jsxRule[0]
-      jsxRule.use = [...jsxRule.use, 'eslint-loader']
+  fs.readdir(srcPath, function(err, files) {
+    if ( err ) {
+      return console.log('Unable to scan directory: ' + err)
     }
-  }
 
-  return through.obj(function(file, encoding, callback) {
+    const pages = {}
+
+    files.forEach(fileName => {
+      pages[path.basename(fileName, '.jsx')] = path.resolve(srcPath, fileName)
+    })
+
+    renderFiles({ pages })
+
+    options.callback()
+  })
+
+
+  const renderFiles = ({ pages }) => {
+
     webpackConfig = {
       ...webpackConfig,
-      entry: file.path
+      entry: pages,
+      context: contextPath,
+      output: {
+        path: buildPath,
+        filename: '[name].html'
+      }
     }
+
+    console.log(webpackConfig, options.watch)
 
     const compiler = webpack(webpackConfig)
 
-    const onComplete = (error, stats) => {
-      if ( error ) {
-        onError(error);
-      } else if ( stats.hasErrors() ) {
-        onError(stats.toString(statsLog));
-      } else {
-        onSuccess(stats.compilation.warnings.map(warn => warn.warning))
-      }
+    if ( !options.watch ) {
+      compiler.run()
+    } else {
+      compiler.watch({
+        aggregateTimeout: 300
+      }, (err, stat) => {
+        if ( err ) {
+          console.log(err)
+        }
+        if ( stat ) {
+          console.log(stat)
+        }
+      })
     }
+  }
 
-    const onError = (error) => {
-      let formatedError = new gutil.PluginError('webpack', error);
-      notifier.notify({
-        title: `Error: ${formatedError.plugin}`,
-        message: formatedError.message
-      });
-      callback(formatedError);
-    }
-    const onSuccess = (info) => {
-      if(info.length)
-        gutil.log('[webpack]', info);
+  function enableLinting() {
+    let
+      rules = webpackConfig.module.rules,
+      jsxRules = rules.filter(item => item.test.toString() === '/\\.(j|t)sx?$/')
 
-      try {
-        const template = compiler.outputFileSystem.readFileSync(path.join(compiler.options.output.path, 'bundle.js')).toString()
-        const ev = eval(template)
-        const result = parameters.doctype + ReactDOMServer.renderToStaticMarkup(ev.default({}))
-
-        file.contents = new Buffer.from(result)
-        file.path = changeExtension(file.path)
-        this.push(file)
-        callback()
-      }
-      catch ( e ) {
-        gutil.log('[webpack]', e)
-        callback()
-      }
-    }
-
-    compiler.outputFileSystem = new MemoryFs()
-    compiler.run(onComplete)
-  });
+    jsxRules.forEach(jsxRule => {
+      jsxRule.use = [...jsxRule.use, 'eslint-loader']
+    })
+  }
 }
