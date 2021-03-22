@@ -27,7 +27,8 @@ module.exports = ( config ) => {
   const parameters = {
     ...{
       doctype: '<!doctype html>\n',
-      linting: false
+      linting: false,
+      pageProps: {}
     },
     ...config
   }
@@ -81,7 +82,7 @@ module.exports = ( config ) => {
       try {
         const template = compiler.outputFileSystem.readFileSync(path.join(compiler.options.output.path, 'bundle.js')).toString()
         const ev = eval(template)
-        const result = parameters.doctype + ReactDOMServer.renderToStaticMarkup(ev.default({}))
+        const result = parameters.doctype + ReactDOMServer.renderToStaticMarkup(ev.default(parameters.pageProps))
 
         file.contents = new Buffer.from(result)
         file.path = changeExtension(file.path)
